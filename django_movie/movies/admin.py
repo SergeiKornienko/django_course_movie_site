@@ -1,15 +1,12 @@
 from django import forms
 from django.contrib import admin
-
-# Register your models here.
 from django.utils.safestring import mark_safe
-
 from .models import Category, Genre, Movie, MovieShots, Actor, Rating, RatingStar, Reviews
-
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
 
 class MovieAdminForm(forms.ModelForm):
+    """Form with ckeditor."""
     description = forms.CharField(
         label='Описание',
         widget=CKEditorUploadingWidget(),
@@ -23,7 +20,7 @@ class MovieAdminForm(forms.ModelForm):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Category."""
-    list_display = ('id', 'name', 'url')
+    list_display = ('name', 'url')
     list_display_links = ('name',)
 
 
@@ -40,7 +37,7 @@ class MovieShotsInline(admin.TabularInline):
     readonly_fields = ('get_image',)
 
     def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width=40% height=auto')
+        return mark_safe(f'<img src={obj.image.url} width="100" height="110"')
 
     get_image.short_description = "Изображение"
 
@@ -81,7 +78,7 @@ class MovieAdmin(admin.ModelAdmin):
     readonly_fields = ('get_image',)
 
     def get_image(self, obj):
-        return mark_safe(f'<img src={obj.poster.url} width=100 height=auto')
+        return mark_safe(f'<img src={obj.poster.url} width="100" height="110"')
 
     def unpublish(self, request, queryset):
         """Remove publication."""
@@ -130,16 +127,15 @@ class ActorAdmin(admin.ModelAdmin):
     readonly_fields = ('get_image',)
 
     def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width=10% height=auto')
+        return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
 
     get_image.short_description = "Изображение"
-
 
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
     """Rating."""
-    list_display = ('movie', 'ip')
+    list_display = ("star", "movie", "ip")
 
 
 @admin.register(MovieShots)
@@ -149,7 +145,7 @@ class MovieShotsAdmin(admin.ModelAdmin):
     readonly_fields = ('get_image',)
 
     def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width=10% height=auto')
+        return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
 
     get_image.short_description = "Изображение"
 
