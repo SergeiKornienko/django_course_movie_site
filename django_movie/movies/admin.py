@@ -1,16 +1,16 @@
 from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from .models import Category, Genre, Movie, MovieShots, Actor, Rating, RatingStar, Reviews
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from modeltranslation.admin import TranslationAdmin
+
+from .models import Category, Genre, Movie, MovieShots, Actor, Rating, RatingStar, Reviews
 
 
 class MovieAdminForm(forms.ModelForm):
-    """Form with ckeditor."""
-    description = forms.CharField(
-        label='Описание',
-        widget=CKEditorUploadingWidget(),
-    )
+    """Форма с виджетом ckeditor"""
+    description_ru = forms.CharField(label="Описание", widget=CKEditorUploadingWidget())
+    description_en = forms.CharField(label="Описание", widget=CKEditorUploadingWidget())
 
     class Meta:
         model = Movie
@@ -18,23 +18,23 @@ class MovieAdminForm(forms.ModelForm):
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    """Category."""
-    list_display = ('name', 'url')
-    list_display_links = ('name',)
+class CategoryAdmin(TranslationAdmin):
+    """Категории"""
+    list_display = ("name", "url")
+    list_display_links = ("name",)
 
 
 class ReviewInline(admin.TabularInline):
-    """Review on page of a film."""
+    """Отзывы на странице фильма"""
     model = Reviews
     extra = 1
-    readonly_fields = ('name', 'email')
+    readonly_fields = ("name", "email")
 
 
 class MovieShotsInline(admin.TabularInline):
     model = MovieShots
     extra = 1
-    readonly_fields = ('get_image',)
+    readonly_fields = ("get_image",)
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="100" height="110"')
@@ -43,88 +43,88 @@ class MovieShotsInline(admin.TabularInline):
 
 
 @admin.register(Movie)
-class MovieAdmin(admin.ModelAdmin):
-    """Movies."""
-    list_display = ('title', 'category', 'url', 'draft')
-    list_filter = ('category', 'year')
-    search_fields = ('title', 'category__name')
+class MovieAdmin(TranslationAdmin):
+    """Фильмы"""
+    list_display = ("title", "category", "url", "draft")
+    list_filter = ("category", "year")
+    search_fields = ("title", "category__name")
     inlines = [MovieShotsInline, ReviewInline]
     save_on_top = True
     save_as = True
-    list_editable = ('draft',)
-    actions = ['publish', 'unpublish']
+    list_editable = ("draft",)
+    actions = ["publish", "unpublish"]
     form = MovieAdminForm
+    readonly_fields = ("get_image",)
     fieldsets = (
         (None, {
-            'fields': (('title', 'tagline'),)
+            "fields": (("title", "tagline"),)
         }),
         (None, {
-            'fields': ('description', ('poster', 'get_image'))
+            "fields": ("description", ("poster", "get_image"))
         }),
         (None, {
-            'fields': (('year', 'world_premiere', 'country'),)
+            "fields": (("year", "world_premiere", "country"),)
         }),
-        ('Actors', {
-            'classes': ('collapse',),
-            'fields': (('actors', 'directors', 'genres', 'category'),)
+        ("Actors", {
+            "classes": ("collapse",),
+            "fields": (("actors", "directors", "genres", "category"),)
         }),
         (None, {
-            'fields': (('budget', 'fees_in_usa', 'fees_in_world'),)
+            "fields": (("budget", "fees_in_usa", "fess_in_world"),)
         }),
-        ('Options', {
-            'fields': (('url', 'draft'),)
+        ("Options", {
+            "fields": (("url", "draft"),)
         }),
     )
-    readonly_fields = ('get_image',)
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.poster.url} width="100" height="110"')
 
     def unpublish(self, request, queryset):
-        """Remove publication."""
+        """Снять с публикации"""
         row_update = queryset.update(draft=True)
         if row_update == 1:
-            message_bit = '1 запись была обновлена'
+            message_bit = "1 запись была обновлена"
         else:
-            message_bit = f'{row_update} записей были обновлены'
-        self.message_user(request, f'{message_bit}')
+            message_bit = f"{row_update} записей были обновлены"
+        self.message_user(request, f"{message_bit}")
 
     def publish(self, request, queryset):
-        """Make publication."""
+        """Опубликовать"""
         row_update = queryset.update(draft=False)
         if row_update == 1:
-            message_bit = '1 запись была обновлена'
+            message_bit = "1 запись была обновлена"
         else:
-            message_bit = f'{row_update} записей были обновлены'
-        self.message_user(request, f'{message_bit}')
+            message_bit = f"{row_update} записей были обновлены"
+        self.message_user(request, f"{message_bit}")
 
-    publish.short_description = 'Опубликовать'
+    publish.short_description = "Опубликовать"
     publish.allowed_permissions = ('change', )
 
-    unpublish.short_description = 'Снять с публикации'
-    unpublish.allowed_permissions = ('change', )
+    unpublish.short_description = "Снять с публикации"
+    unpublish.allowed_permissions = ('change',)
 
     get_image.short_description = "Постер"
 
 
 @admin.register(Reviews)
 class ReviewAdmin(admin.ModelAdmin):
-    """Revies."""
-    list_display = ('name', 'email', 'parent', 'movie', 'id')
-    readonly_fields = ('name', 'email')
+    """Отзывы к фильму"""
+    list_display = ("name", "email", "parent", "movie", "id")
+    readonly_fields = ("name", "email")
 
 
 @admin.register(Genre)
-class GenreAdmin(admin.ModelAdmin):
-    """Genres."""
-    list_display = ('name', 'url')
+class GenreAdmin(TranslationAdmin):
+    """Жанры"""
+    list_display = ("name", "url")
 
 
 @admin.register(Actor)
-class ActorAdmin(admin.ModelAdmin):
-    """Actors."""
-    list_display = ('name', 'age', "get_image")
-    readonly_fields = ('get_image',)
+class ActorAdmin(TranslationAdmin):
+    """Актеры"""
+    list_display = ("name", "age", "get_image")
+    readonly_fields = ("get_image",)
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
@@ -134,15 +134,15 @@ class ActorAdmin(admin.ModelAdmin):
 
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
-    """Rating."""
+    """Рейтинг"""
     list_display = ("star", "movie", "ip")
 
 
 @admin.register(MovieShots)
-class MovieShotsAdmin(admin.ModelAdmin):
-    """MovieShots."""
-    list_display = ('title', 'movie', 'get_image')
-    readonly_fields = ('get_image',)
+class MovieShotsAdmin(TranslationAdmin):
+    """Кадры из фильма"""
+    list_display = ("title", "movie", "get_image")
+    readonly_fields = ("get_image",)
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
@@ -152,5 +152,5 @@ class MovieShotsAdmin(admin.ModelAdmin):
 
 admin.site.register(RatingStar)
 
-admin.site.site_title = 'Django Movies'
-admin.site.site_header = 'Django Movies'
+admin.site.site_title = "Django Movies"
+admin.site.site_header = "Django Movies"

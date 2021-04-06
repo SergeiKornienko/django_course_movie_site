@@ -6,7 +6,7 @@
 {% endblock container %}
 
 {% block sidebar %}
-    <div class="side-bar col-lg-3">
+    <div class="side-bar col-lg-4">
 {% endblock sidebar %}
 
 {% block movie %}
@@ -16,35 +16,36 @@
                 <img src="{{ actor.image.url }}" class="img-fluid" alt="">
             </div>
             <div class="desc1-right col-md-6 pl-lg-4">
-                <h3 class="editContent" style="outline: none; cursor: inherit;">
-                    {{ movie.title }}</h3>
+                <h3 class="editContent">
+                    {{ movie.title }}
+                </h3>
                 <h5 class="editContent"></h5>
                 <ul>
-                    <li><span><b>Возраст:</b> {{ actor.age }} лет</span></li>
+                    <li>
+                        <span><b>Возраст:</b> {{ actor.age }} лет</span></li>
                     <li>
                         <span><b>Режиссер:</b>
                             {% for movie in actor.film_director.all %}
-                            {{ movie.title }}
-                            {% endfor %}
-                        </span></li>
-                    <li>
-                        <span><b>Актер:</b>
-                            {% for movie in actor.film_actor.all %}
-                            {{ movie.title }}
+                                {{ movie.title }}
                             {% endfor %}
                         </span>
+                    </li>
+                    <li><span><b>Актер:</b>
+                        {% for movie in actor.film_actor.all %}
+                            {{ movie.title }}
+                        {% endfor %}
+                    </span>
                     </li>
                 </ul>
             </div>
         </div>
         <div class="row sub-para-w3layouts mt-5">
             <h3 class="shop-sing editContent">
-                О  {{ actor.name }}
+                О {{ actor.name }}
             </h3>
-            <p class="editContent" >
+            <p class="editContent">
                 {{ actor.description|safe }}
             </p>
         </div>
     </div>
 {% endblock movie %}
-

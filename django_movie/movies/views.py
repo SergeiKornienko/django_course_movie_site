@@ -1,20 +1,23 @@
-from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.conf import settings
+from django.db import models
+from django.db.models import Q, OuterRef, Subquery, Case, When
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import redirect
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 
-from .models import Movie, Actor, Genre, Rating
+from .models import Movie, Category, Actor, Genre, Rating, Reviews
 from .forms import ReviewForm, RatingForm
 
 
 class GenreYear:
-    """Genres and years of fjlms."""
+    """Жанры и года выхода фильмов"""
+
     def get_genres(self):
         return Genre.objects.all()
 
     def get_years(self):
-        return Movie.objects.filter(draft=False).values('year')
+        return Movie.objects.filter(draft=False).values("year")
 
 
 def get_client_ip(request):
@@ -27,54 +30,55 @@ def get_client_ip(request):
 
 
 class MoviesView(GenreYear, ListView):
-    """List of films."""
+    """Список фильмов"""
     model = Movie
     queryset = Movie.objects.filter(draft=False)
     paginate_by = 1
 
 
 class MovieDetailView(GenreYear, DetailView):
-    """Full description of a film."""
+    """Полное описание фильма"""
     model = Movie
     queryset = Movie.objects.filter(draft=False)
-    slug_field = 'url'
+    slug_field = "url"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['star_form'] = ReviewForm()
-        context['form'] = ReviewForm()
+        context["star_form"] = RatingForm()
+        context["form"] = ReviewForm()
         return context
 
 
 class AddReview(View):
-    """Reviews."""
+    """Отзывы"""
+
     def post(self, request, pk):
         form = ReviewForm(request.POST)
         movie = Movie.objects.get(id=pk)
         if form.is_valid():
             form = form.save(commit=False)
-            if request.POST.get('parent', None):
-                form.parent_id = int(request.POST.get('parent'))
+            if request.POST.get("parent", None):
+                form.parent_id = int(request.POST.get("parent"))
             form.movie = movie
             form.save()
         return redirect(movie.get_absolute_url())
 
 
 class ActorView(GenreYear, DetailView):
-    """Output info about an actor."""
+    """Вывод информации о актере"""
     model = Actor
     template_name = 'movies/actor.html'
-    slug_field = 'name'
+    slug_field = "name"
 
 
 class FilterMoviesView(GenreYear, ListView):
-    """Filter of movies."""
-    paginate_by = 2
+    """Фильтр фильмов"""
+    paginate_by = 5
 
     def get_queryset(self):
         queryset = Movie.objects.filter(
-            Q(year__in=self.request.GET.getlist('year')) |
-            Q(genres__in=self.request.GET.getlist('genre'))
+            Q(year__in=self.request.GET.getlist("year")) |
+            Q(genres__in=self.request.GET.getlist("genre"))
         ).distinct()
         return queryset
 
@@ -101,7 +105,7 @@ class JsonFilterMoviesView(ListView):
 
 
 class AddStarRating(View):
-    """Add reting to film."""
+    """Добавление рейтинга фильму"""
 
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -125,14 +129,13 @@ class AddStarRating(View):
 
 
 class Search(ListView):
-    """Search of films."""
-    paginate_by = 1
+    """Поиск фильмов"""
+    paginate_by = 3
 
     def get_queryset(self):
-        q = self.request.GET.get('q').capitalize()
-        return Movie.objects.filter(title__icontains=q)
+        return Movie.objects.filter(title__icontains=self.request.GET.get("q"))
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['q'] = f'q={self.request.GET.get("q")}&'
+        context["q"] = f'q={self.request.GET.get("q")}&'
         return context
